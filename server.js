@@ -55,10 +55,9 @@ function rpvp2(req, res, data){
 function kill(req, res, data){
 	res.writeHead("200");
 	res.end("errorcode=0");
-	/*if (data.user && data.user in u2id){
-		delete matchs[u2id[data.user]];
-		delete u2id[data.user];
-	}*/
+	if (data.user in u2id && u2id[data.user] in matchs && data.user == matchs[u2id[data.user]].master){
+		dropmatch(u2id[data.user]);
+	}
 }
 function slaveduel(req, res, data){
 	res.writeHead("200");
