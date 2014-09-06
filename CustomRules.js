@@ -16,7 +16,7 @@ class Handlers
         var blacklist = new Array("bronzeu", "silveru", "goldu", "platinumu", "errorcode");
 
         if (oSession.HostnameIs("www.elementsthegame.com") && Regex.IsMatch(oSession.PathAndQuery,
-            "^/e/(rpvp2|kill|slaveduel|insertduel|insertslave|writemaster|writeslave|readrpvp2)\\.php")
+            "^/e/(rpvp2|kill|slaveduel|insertduel|insertslave|writemaster|writeslave|writemastermsg|writeslavemsg|readrpvp2)\\.php")
         ) {
             if(oSession.HTTPMethodIs("POST")){
                 oSession.utilDecodeRequest();
@@ -38,15 +38,14 @@ class Handlers
                 }
             }
             oSession["ui-backcolor"] = "lime";
-            oSession.hostname="192.168.1.2";
-            //oSession.hostname="elementsthegame.cloudapp.com";
-        }   
+            oSession.hostname="elementsthegame.cloudapp.net";
+        }
 
         if ((null != gs_ReplaceToken) && (oSession.url.indexOf(gs_ReplaceToken)>-1)) {   // Case sensitive
-            oSession.url = oSession.url.Replace(gs_ReplaceToken, gs_ReplaceTokenWith); 
+            oSession.url = oSession.url.Replace(gs_ReplaceToken, gs_ReplaceTokenWith);
         }
         if ((null != gs_OverridenHost) && (oSession.host.toLowerCase() == gs_OverridenHost)) {
-            oSession["x-overridehost"] = gs_OverrideHostWith; 
+            oSession["x-overridehost"] = gs_OverrideHostWith;
         }
 
         if ((null!=bpRequestURI) && oSession.uriContains(bpRequestURI)) {
@@ -63,9 +62,9 @@ class Handlers
 
         if (m_SimulateModem) {
             // Delay sends by 300ms per KB uploaded.
-            oSession["request-trickle-delay"] = "300"; 
+            oSession["request-trickle-delay"] = "300";
             // Delay receives by 150ms per KB downloaded.
-            oSession["response-trickle-delay"] = "150"; 
+            oSession["response-trickle-delay"] = "150";
         }
 
         if (m_DisableCaching) {
@@ -76,7 +75,7 @@ class Handlers
 
         // User-Agent Overrides
         if (null != sUA) {
-            oSession.oRequest["User-Agent"] = sUA; 
+            oSession.oRequest["User-Agent"] = sUA;
         }
 
         if (m_AlwaysFresh && (oSession.oRequest.headers.Exists("If-Modified-Since") || oSession.oRequest.headers.Exists("If-None-Match")))
@@ -116,7 +115,7 @@ class Handlers
 
     // You can create a custom menu like so:
     /*
-    QuickLinkMenu("&Links") 
+    QuickLinkMenu("&Links")
     QuickLinkItem("IE GeoLoc TestDrive", "http://ie.microsoft.com/testdrive/HTML5/Geolocation/Default.html")
     QuickLinkItem("FiddlerCore", "http://fiddler2.com/fiddlercore")
     public static function DoLinksMenu(sText: String, sAction: String)
@@ -128,9 +127,9 @@ class Handlers
     public static RulesOption("Hide 304s")
     BindPref("fiddlerscript.rules.Hide304s")
     var m_Hide304s: boolean = false;
-    
+
     // Cause Fiddler to override the User-Agent header with one of the defined values
-    RulesString("&User-Agents", true) 
+    RulesString("&User-Agents", true)
     BindPref("fiddlerscript.ephemeral.UserAgentString")
     RulesStringValue(0,"Netscape &3", "Mozilla/3.0 (Win95; I)")
     RulesStringValue(1,"WinPhone7", "Mozilla/4.0 (compatible: MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; SAMSUNG; SGH-i917)")
@@ -169,11 +168,11 @@ class Handlers
 
     public static RulesOption("Cache Always &Fresh", "Per&formance")
     var m_AlwaysFresh: boolean = false;
-        
+
     // Force a manual reload of the script file.  Resets all
     // RulesOption variables to their defaults.
     public static ToolsAction("Reset Script")
-    function DoManualReload() { 
+    function DoManualReload() {
         FiddlerObject.ReloadScript();
     }
 
@@ -185,7 +184,7 @@ class Handlers
         }
         UI.actUpdateInspector(true,true);
     }
-    
+
     static function OnShutdown() {
         // MessageBox.Show("Fiddler has shutdown");
     }
@@ -213,14 +212,14 @@ class Handlers
 */
 
     //
-    // If a given session has response streaming enabled, then the OnBeforeResponse function 
+    // If a given session has response streaming enabled, then the OnBeforeResponse function
     // is actually called AFTER the response was returned to the client.
     //
-    // In contrast, this OnPeekAtResponseHeaders function is called before the response headers are 
-    // sent to the client (and before the body is read from the server).  Hence this is an opportune time 
-    // to disable streaming (oSession.bBufferResponse = true) if there is something in the response headers 
+    // In contrast, this OnPeekAtResponseHeaders function is called before the response headers are
+    // sent to the client (and before the body is read from the server).  Hence this is an opportune time
+    // to disable streaming (oSession.bBufferResponse = true) if there is something in the response headers
     // which suggests that tampering with the response body is necessary.
-    // 
+    //
     // Note: oSession.responseBodyBytes is not available within this function!
     //
     static function OnPeekAtResponseHeaders(oSession: Session) {
@@ -234,7 +233,7 @@ class Handlers
             oSession["x-breakresponse"]="status";
             oSession.bBufferResponse = true;
         }
-        
+
         if ((null!=bpResponseURI) && oSession.uriContains(bpResponseURI)) {
             oSession["x-breakresponse"]="uri";
             oSession.bBufferResponse = true;
@@ -249,7 +248,7 @@ class Handlers
     }
 
 /*
-    // This function executes just before Fiddler returns an error that it has 
+    // This function executes just before Fiddler returns an error that it has
     // itself generated (e.g. "DNS Lookup failure") to the client application.
     // These responses will not run through the OnBeforeResponse function above.
     static function OnReturningError(oSession: Session) {
@@ -273,10 +272,10 @@ class Handlers
         // UI.lvSessions.AddBoundColumn("Server", 50, "@response.server");
 
         // Uncomment to add a global hotkey (Win+G) that invokes the ExecAction method below...
-        // UI.RegisterCustomHotkey(HotkeyModifiers.Windows, Keys.G, "screenshot"); 
+        // UI.RegisterCustomHotkey(HotkeyModifiers.Windows, Keys.G, "screenshot");
     }
 
-    // These static variables are used for simple breakpointing & other QuickExec rules 
+    // These static variables are used for simple breakpointing & other QuickExec rules
     BindPref("fiddlerscript.ephemeral.bpRequestURI")
     public static var bpRequestURI:String = null;
 
@@ -319,13 +318,13 @@ class Handlers
         return true;
     case "bpu":
         if (sParams.Length<2) {bpRequestURI=null; FiddlerObject.StatusText="RequestURI breakpoint cleared"; return false;}
-        bpRequestURI = sParams[1]; 
+        bpRequestURI = sParams[1];
         FiddlerObject.StatusText="RequestURI breakpoint for "+sParams[1];
         return true;
     case "bpa":
     case "bpafter":
         if (sParams.Length<2) {bpResponseURI=null; FiddlerObject.StatusText="ResponseURI breakpoint cleared"; return false;}
-        bpResponseURI = sParams[1]; 
+        bpResponseURI = sParams[1];
         FiddlerObject.StatusText="ResponseURI breakpoint for "+sParams[1];
         return true;
     case "overridehost":
@@ -377,7 +376,7 @@ class Handlers
         return true;
     case "nuke":
         UI.actClearWinINETCache();
-        UI.actClearWinINETCookies(); 
+        UI.actClearWinINETCookies();
         return true;
     case "screenshot":
         UI.actCaptureScreenshot(false);

@@ -55,15 +55,16 @@ function rpvp2(req, res, data){
 function kill(req, res, data){
 	res.writeHead("200");
 	res.end("errorcode=0");
-	if (data.user in u2id && u2id[data.user] in matchs && data.user == matchs[u2id[data.user]].master){
-		dropmatch(u2id[data.user]);
+	var id = u2id[data.user];
+	if (id !== undefined && id in matchs && (matchs[id].master == data.user || matchmeta[id].started)){
+		dropmatch(id);
 	}
 }
 function slaveduel(req, res, data){
 	res.writeHead("200");
 	console.log("SLAVEDUEL", data);
 	var getop = optbl[data.user];
-	if (getop && getop in u2id && u2id[getop] in matchs){
+	if (getop && getop in u2id && u2id[getop] in matchs && !matchmeta[u2id[getop]].started){
 		var match = matchs[u2id[getop]];
 		var seed = match.seed;
 		delete match.seed;
@@ -126,6 +127,7 @@ function insertslave(req, res, data){
 		match.slavewon = data.slavewon;
 		match.slavelost = data.slavelost;
 		match.statu = data.statu;
+		matchmeta[data.id].started = true;
 	}
 }
 function writemaster(req, res, data){
@@ -136,8 +138,6 @@ function writemaster(req, res, data){
 		match.mastermsg = data.mastermsg;
 		match.masterctrl = data.masterctrl;
 		match.statu = data.statu;
-		if (match.statu == "masterleft"){
-		}
 	}
 }
 function writeslave(req, res, data){
@@ -150,6 +150,22 @@ function writeslave(req, res, data){
 		match.statu = data.statu;
 	}
 }
+function writemastermsg(req, res, data){
+	res.writeHead("200");
+	res.end("errorcode=0");
+	var match = matchs[data.id];
+	if (match){
+		match.mastermsg = data.mastermsg;
+	}
+}
+function writeslavemsg(req, res, data){
+	res.writeHead("200");
+	res.end("errorcode=0");
+	var match = matchs[data.id];
+	if (match){
+		match.slavemsg = data.slavemsg;
+	}
+}
 function readrpvp2(req, res, data){
 	if (data.id in matchs){
 		res.writeHead("200");
@@ -160,7 +176,7 @@ function readrpvp2(req, res, data){
 	}
 }
 var routes = {};
-[rpvp2, kill, slaveduel, insertduel, insertslave, writemaster, writeslave, readrpvp2].forEach(function(func){
+[rpvp2, kill, slaveduel, insertduel, insertslave, writemaster, writeslave, writemastermsg, writeslavemsg, readrpvp2].forEach(function(func){
 	routes[func.name] = func;
 });
 http.createServer(function(req, res){
