@@ -135,8 +135,8 @@ function writemaster(req, res, data){
 	res.end("errorcode=0");
 	var match = matchs[data.id];
 	if (match){
-		match.mastermsg = data.mastermsg;
 		match.masterctrl = data.masterctrl;
+		match.mastermsg = data.mastermsg;
 		match.statu = data.statu;
 	}
 }
@@ -145,8 +145,8 @@ function writeslave(req, res, data){
 	res.end("errorcode=0");
 	var match = matchs[data.id];
 	if (match){
-		match.slavemsg = data.slavemsg;
 		match.slavectrl = data.slavectrl;
+		match.slavemsg = data.slavemsg;
 		match.statu = data.statu;
 	}
 }

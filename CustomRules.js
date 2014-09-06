@@ -13,31 +13,55 @@ class Handlers
         // if (oSession.uriContains("/sandbox/")) {
         //     oSession.oFlags["x-breakrequest"] = "yup";	// Existence of the x-breakrequest flag creates a breakpoint; the "yup" value is unimportant.
         // }
-        var blacklist = new Array("bronzeu", "silveru", "goldu", "platinumu", "errorcode");
 
-        if (oSession.HostnameIs("www.elementsthegame.com") && Regex.IsMatch(oSession.PathAndQuery,
-            "^/e/(rpvp2|kill|slaveduel|insertduel|insertslave|writemaster|writeslave|writemastermsg|writeslavemsg|readrpvp2)\\.php")
-        ) {
-            if(oSession.HTTPMethodIs("POST")){
+        var match = Regex.Match(oSession.PathAndQuery,
+            "^/e/(rpvp2|kill|slaveduel|insertduel|insertslave|writemaster|writeslave|writemastermsg|writeslavemsg|readrpvp2)\\.php");
+        if (oSession.HostnameIs("www.elementsthegame.com") && match.Success) {
+            var tgt = match.Value.Substring(3, match.Value.Length-7);
+            var whitelist : RegExp =
+                tgt == "rpvp2" ? /^(id|user)$/ :
+                tgt == "kill" ? /^user$/ :
+                tgt == "slaveduel" ? /^user$/ :
+                tgt == "insertduel" ? /^(user|seed|masterdeck|masterelement|masterscore|masterwon|masterlost|op)$/ :
+                tgt == "insertslave" ? /^(id|user|slavedeck|slaveelement|slavescore|slavewon|slavelost|statu)$/ :
+                tgt == "writemaster" ? /^(id|masterctrl|mastermsg|statu)$/ :
+                tgt == "writeslave" ? /^(id|slavectrl|slavemsg|statu)$/ :
+                tgt == "writemastermsg" ? /^(id|mastermsg)$/ :
+                tgt == "writeslavemsg" ? /^(id|slavemsg)$/ :
+                tgt == "readrpvp2" ? /^id$/ : /^$/;
+            var isPost : boolean = oSession.HTTPMethodIs("POST");
+            var body : String, qidx : int;
+            if (isPost){
                 oSession.utilDecodeRequest();
-                var oBody = System.Text.Encoding.UTF8.GetString(oSession.requestBodyBytes);
-                for(var i=0;i <blacklist.length;i++){
-                    var blist = blacklist[i];
-                    oBody = Regex.Replace(oBody,
-                        blist+"=.*?&", "");
-                }
-                oSession.utilSetRequestBody(oBody);
+                body = System.Text.Encoding.UTF8.GetString(oSession.requestBodyBytes);
+                qidx = 0;
             }else{
-                var qidx = oSession.PathAndQuery.indexOf("?");
-                if (qidx != -1){
-                    for(var i=0;i <blacklist.length;i++){
-                        var blist = blacklist[i];
-                        oSession.PathAndQuery = Regex.Replace(oSession.PathAndQuery,
-                            blist+"=.*?&", "");
+                body = oSession.PathAndQuery;
+                qidx = body.IndexOf("?")+1;
+                if (qidx == 0) qidx = body.Length;
+            }
+            while (qidx != body.Length) {
+                var newqidx = body.IndexOf('&', qidx)+1;
+                if (newqidx == 0) newqidx = body.Length;
+                var eidx = body.IndexOf('=', qidx);
+                if (eidx > newqidx) eidx = -1;
+                if (eidx !=-1 && !whitelist.test(body.Substring(qidx, eidx-qidx))){
+                    body = body.Remove(qidx, newqidx-qidx);
+                    if (qidx == body.Length){
+                        body = body.Remove(body.Length-1, 1);
+                        break;
                     }
+                }else{
+                    qidx = newqidx;
                 }
             }
+            if (isPost){
+                oSession.utilSetRequestBody(body);
+            }else{
+                oSession.PathAndQuery = body;
+            }
             oSession["ui-backcolor"] = "lime";
+            //oSession.hostname="192.168.1.2";
             oSession.hostname="elementsthegame.cloudapp.net";
         }
 
