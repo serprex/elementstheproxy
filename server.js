@@ -180,17 +180,16 @@ var routes = {};
 	routes[func.name] = func;
 });
 http.createServer(function(req, res){
+	console.log(req.url);
 	for (var route in routes){
 		if (~req.url.indexOf(route)){
 			if (req.method == "POST"){
-				console.log(req.url);
 				var body = "";
 				req.on("data", function(data) { body += data; });
 				req.on("end", function(){
 					routes[route](req, res, qstring.parse(body));
 				});
 			}else if (req.method == "GET"){
-				console.log("get");
 				routes[route](req, res, url.parse(req.url, true).query);
 			}
 			return;
