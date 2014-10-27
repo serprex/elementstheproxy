@@ -14,10 +14,14 @@ class Handlers
         //     oSession.oFlags["x-breakrequest"] = "yup";	// Existence of the x-breakrequest flag creates a breakpoint; the "yup" value is unimportant.
         // }
 
-        var match = Regex.Match(oSession.PathAndQuery,
+        var match : Match = Regex.Match(oSession.PathAndQuery,
             "^/e/(rpvp2|kill|slaveduel|insertduel|insertslave|writemaster|writeslave|writemastermsg|writeslavemsg|readrpvp2)\\.php");
         if (oSession.HostnameIs("www.elementsthegame.com") && match.Success) {
-            var tgt = match.Value.Substring(3, match.Value.Length-7);
+            var tgt : String = match.Value.Substring(3, match.Value.Length-7);
+            /* Unimplemented:
+                slave       essentially insertslave for pvp
+                insertpvp   insertpvp2 for pvp
+            */
             var whitelist : RegExp =
                 tgt == "rpvp2" ? /^(id|user)$/ :
                 tgt == "kill" ? /^user$/ :
@@ -44,8 +48,7 @@ class Handlers
                 var newqidx = body.IndexOf('&', qidx)+1;
                 if (newqidx == 0) newqidx = body.Length;
                 var eidx = body.IndexOf('=', qidx);
-                if (eidx > newqidx) eidx = -1;
-                if (eidx !=-1 && !whitelist.test(body.Substring(qidx, eidx-qidx))){
+                if (eidx !=-1 && eidx < newqidx && !whitelist.test(body.Substring(qidx, eidx-qidx))){
                     body = body.Remove(qidx, newqidx-qidx);
                     if (qidx == body.Length){
                         body = body.Remove(body.Length-1, 1);
@@ -55,14 +58,17 @@ class Handlers
                     qidx = newqidx;
                 }
             }
+            if (m_useProxy){
+                //oSession.hostname="192.168.1.2";
+                //oSession.hostname="elementsthegame.info";
+                oSession.hostname="elementsthegame.cloudapp.net";
+            }
             if (isPost){
                 oSession.utilSetRequestBody(body);
             }else{
                 oSession.PathAndQuery = body;
             }
             oSession["ui-backcolor"] = "lime";
-            //oSession.hostname="192.168.1.2";
-            oSession.hostname="elementsthegame.cloudapp.net";
         }
 
         if ((null != gs_ReplaceToken) && (oSession.url.indexOf(gs_ReplaceToken)>-1)) {   // Case sensitive
@@ -108,45 +114,10 @@ class Handlers
             oSession.responseCode = 304;
             oSession["ui-backcolor"] = "Lavender";
         }
-        }
-
-    // The following snippet demonstrates a custom-bound column for the Web Sessions list.
-    // See http://fiddler2.com/r/?fiddlercolumns for more info
-    /*
-      public static BindUIColumn("Method", 60)
-      function FillMethodColumn(oS: Session): String {
-         return oS.RequestMethod;
-      }
-    */
-
-    // The following snippet demonstrates how to create a custom tab that shows simple text
-    /*
-       public BindUITab("Flags")
-       static function FlagsReport(arrSess: Session[]):String {
-        var oSB: System.Text.StringBuilder = new System.Text.StringBuilder();
-        for (var i:int = 0; i<arrSess.Length; i++)
-        {
-            oSB.AppendLine("SESSION FLAGS");
-            oSB.AppendFormat("{0}: {1}\n", arrSess[i].id, arrSess[i].fullUrl);
-            for(var sFlag in arrSess[i].oFlags)
-            {
-                oSB.AppendFormat("\t{0}:\t\t{1}\n", sFlag.Key, sFlag.Value);
-            }
-        }
-        return oSB.ToString();
-    }
-    */
-
-    // You can create a custom menu like so:
-    /*
-    QuickLinkMenu("&Links")
-    QuickLinkItem("IE GeoLoc TestDrive", "http://ie.microsoft.com/testdrive/HTML5/Geolocation/Default.html")
-    QuickLinkItem("FiddlerCore", "http://fiddler2.com/fiddlercore")
-    public static function DoLinksMenu(sText: String, sAction: String)
-    {
-        Utilities.LaunchHyperlink(sAction);
-    }
-    */
+     }
+    // Cause Fiddler to delay HTTP traffic to simulate typical 56k modem conditions
+    public static RulesOption("Redirect to Elements The Proxy")
+    var m_useProxy: boolean = true;
 
     public static RulesOption("Hide 304s")
     BindPref("fiddlerscript.rules.Hide304s")

@@ -62,7 +62,6 @@ function kill(req, res, data){
 }
 function slaveduel(req, res, data){
 	res.writeHead("200");
-	console.log("SLAVEDUEL", data);
 	var getop = optbl[data.user];
 	if (getop && getop in u2id && u2id[getop] in matchs && !matchmeta[u2id[getop]].started){
 		var match = matchs[u2id[getop]];
@@ -86,7 +85,6 @@ function insertduel(req, res, data){
 		return;
 	}
 	var ourid = ++id;
-	console.log(ourid, data);
 	if (id > 2147483640)id=0;
 	var match = matchs[ourid] = {id: ourid};
 	match.seed = data.seed;
@@ -187,6 +185,7 @@ http.createServer(function(req, res){
 				var body = "";
 				req.on("data", function(data) { body += data; });
 				req.on("end", function(){
+					console.log(body);
 					routes[route](req, res, qstring.parse(body));
 				});
 			}else if (req.method == "GET"){
