@@ -2,7 +2,6 @@
 import System.Windows.Forms;
 import Fiddler;
 import System.Text.RegularExpressions;
-// Be sure to save this file with UTF-8 Encoding if using any non-ASCII characters
 // JScript.NET Reference http://fiddler2.com/r/?msdnjsnet
 // FiddlerScript Editor http://fiddler2.com/fiddlerscript-editor
 
@@ -114,6 +113,17 @@ class Handlers
             oSession.responseCode = 304;
             oSession["ui-backcolor"] = "Lavender";
         }
+
+		if (oSession.url.Contains("elementsthegame")){
+			if (oSession.url.Contains("decks6")){
+				oSession["ui-backcolor"] = "LimeGreen";
+				oSession.url = oSession.url.replace(/decks6/, "e/decks6");
+			}
+			if (oSession.url.Contains(".org/spectate")){
+				oSession["ui-backcolor"] = "LimeGreen";
+				oSession.url = oSession.url.replace(/.org\/spectate/, ".com/e/spectate");
+			}
+		}
      }
     // Cause Fiddler to delay HTTP traffic to simulate typical 56k modem conditions
     public static RulesOption("Redirect to Elements The Proxy")
